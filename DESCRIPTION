@@ -13,3 +13,4 @@ LazyData: TRUE
 RoxygenNote: 5.0.0
 URL: https://github.com/mpiktas/retacoro
 BugReports: https://github.com/mpiktas/retacoro/issues
+Suggests: testthat
