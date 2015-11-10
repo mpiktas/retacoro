@@ -1,5 +1,5 @@
-[![Travis-CI Build Status](https://travis-ci.org/vzemlys/retacoro.svg?branch=master)](https://travis-ci.org/vzemlys/retacoro)
-[![Coverage Status](https://img.shields.io/codecov/c/github/vzemlys/retacoro/master.svg)](https://codecov.io/github/vzemlys/retacoro?branch=master)
+[![Travis-CI Build Status](https://travis-ci.org/mpiktas/retacoro.svg?branch=master)](https://travis-ci.org/mpiktas/retacoro)
+[![Coverage Status](https://img.shields.io/codecov/c/github/mpiktas/retacoro/master.svg)](https://codecov.io/github/mpiktas/retacoro?branch=master)
 
 # retacoro
 

@@ -6,10 +6,10 @@ Author: Vaidotas Zemlys <zemlys@gmail.com>
 Maintainer: Vaidotas Zemlys <zemlys@gmail.com>
 Description: Given table renormalize it so that it has given column and row
     totals, while preserving certain structure.
-Depends: 
+Depends:
     nleqslv
 License: GPL-2 | MIT + file LICENCE
 LazyData: TRUE
 RoxygenNote: 5.0.0
-URL: https://github.com/vzemlys/retacoro
-BugReports: https://github.com/vzemlys/retacoro/issues
+URL: https://github.com/mpiktas/retacoro
+BugReports: https://github.com/mpiktas/retacoro/issues
