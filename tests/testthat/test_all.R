@@ -15,6 +15,17 @@ test_that("The log-likelihood constraint matrix works", {
     expect_that( length(which(rr > 0)), equals(0))
 })
 
+test_that("The log-likelihood constraint with fixed first row and column  works", {
+    set.seed(13)
+    m <- matrix(runif(15),nrow = 5)
+    BB <- genB(nrow(m),ncol(m))
+    BB1 <- genB1(nrow(m),ncol(m))
+    rr <- matrix(BB %*% as.vector(m),nrow = nrow(m) - 1)
+    rr1 <- matrix(BB1 %*% as.vector(m),nrow = nrow(m) - 1)
+    expect_that( sum(abs(rr1 - cumsum2(rr))), is_less_than(1e-6))
+})
+
+
 test_that("Recovering the matrix given the constraints works", {
     set.seed(100)
     m <- matrix(runif(15), nrow = 5)
@@ -25,9 +36,27 @@ test_that("Recovering the matrix given the constraints works", {
 })
 
 
-test_that("Trivial recovering works", {
+test_that("Trivial rescaling works", {
     set.seed(101)
     m <- matrix(runif(15), nrow = 5)
-    res <- recover_table(m, colSums(m), rowSums(m))
+    res <- rescale_table(m, colSums(m), rowSums(m))
+    expect_that(sum(abs(res$table - m)), is_less_than(1e-8))
+})
+
+test_that("Trivial recovering works with fixed ratios", {
+    set.seed(102)
+    mm <- matrix(runif(15), nrow = 5)
+    cr <-  constraints(mm, ratio = "fixed")
+    res <- recover_table(cr$p, colSums(mm), rowSums(mm), ratio = "fixed")
+    expect_that(sum(abs(res$table - mm)), is_less_than(1e-8))
+})
+
+
+test_that("Trivial recovering works with sequential ratios", {
+    set.seed(103)
+    m <- matrix(runif(15), nrow = 5)
+    cr <- constraints(m, ratio = "sequential")
+    res <- recover_table(cr$p, colSums(m), rowSums(m), ratio = "sequential")
     expect_that(sum(abs(res$table-m)), is_less_than(1e-8))
+
 })

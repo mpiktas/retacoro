@@ -1,0 +1,36 @@
+---
+title: "Recovering tables"
+author: "Vaidotas Zemlys"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This document describes how to solve two common tasks:
+
+  1. Model a table where column and row sums are fixed
+  
+  2. Given a table rescale it so that the column and row sums are equal to prespecified values in a way, that the original table does not change too much.
+    
+To solve these tasks we introduce a certain ratio. Given a table of **positive** numbers $t_{ij}$, $i=1,..,n$, $j=1,...,m$ the ratio is defined as
+
+$$r_{ij} = \log\left(\frac{t_{i1}t_{1j}}{t_{11}t_{ij}}\right) = \log(t_{i1})+\log(t_{1j})-\log(t_{11})-\log(t_{ij}).$$
+
+These ratios together with column and row sums uniquely define the table $t_{ij}$. 
+
+The ratios are calculated using function `constraints`. 
+
+```{r}
+    library(retacoro)
+    set.seed(13)
+    m <- matrix(runif(20),nrow = 4)
+    m
+    cr <- constraints(m)
+    cr$p
+```
+
+
+
