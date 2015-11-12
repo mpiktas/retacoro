@@ -9,7 +9,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-This document describes how to solve two common tasks:
+##Introduction 
+This document describes how to solve two common tasks using package **retacoro**:
 
   1. Model a table where column and row sums are fixed
   
@@ -17,20 +18,69 @@ This document describes how to solve two common tasks:
     
 To solve these tasks we introduce a certain ratio. Given a table of **positive** numbers $t_{ij}$, $i=1,..,n$, $j=1,...,m$ the ratio is defined as
 
-$$r_{ij} = \log\left(\frac{t_{i1}t_{1j}}{t_{11}t_{ij}}\right) = \log(t_{i1})+\log(t_{1j})-\log(t_{11})-\log(t_{ij}).$$
+$$r_{ij} = \log\left(\frac{t_{i1}t_{1j}}{t_{11}t_{ij}}\right) = \log(t_{i1})+\log(t_{1j})-\log(t_{11})-\log(t_{ij}),$$
 
-These ratios together with column and row sums uniquely define the table $t_{ij}$. 
+for  $i=2,...,n$ and $j=2,...,m$. These ratios together with column and row sums uniquely define the table $t_{ij}$. 
 
-The ratios are calculated using function `constraints`. 
+##Recover example
+```{r echo = FALSE}
+suppressMessages(library("retacoro"))
+```
 
+Let us start wit the simple example table:
 ```{r}
-    library(retacoro)
     set.seed(13)
     m <- matrix(runif(20),nrow = 4)
     m
+```
+
+The log-ratios are calculated using function `constraints`:
+```{r}
     cr <- constraints(m)
     cr$p
 ```
+
+These ratios do not have any constraints, i.e. they are unrestricted real numbers, so they can be modelled separately. 
+
+After modelling we can recover the original matrix:
+```{r warning = FALSE}
+    mm <- recover_table(cr$p, colSums(m), rowSums(m))
+    mm$table
+```
+
+##Rescale example
+
+Let us modify our table by adding some random noise:
+
+```{r}
+    ma <- m + matrix(runif(20), nrow = 4)/20
+    ma
+```
+
+Suppose we want to make this matrix have the same row and column sum totals as the original matrix `m`:
+```{r}
+    mas <- rescale_table(ma, colSums(m), rowSums(m))
+    mas$table
+    
+```
+Let us check whether the sum totals are the same:
+```{r}
+    rowSums(mas$table) - rowSums(m)
+    colSums(mas$table) - colSums(m)
+```
+
+##Additional notes
+
+The current code is still in experimental phase, so suggestions are welcome. It works quite well on simple examples and not very large tables (up to thousand elements). Bigger tables would require some rewriting to speed up the calculations. 
+
+The recovering procedure involves solving the set of non-linear equations. For examples tested the procedure always succeeds in finding the solution.   Theoretically the solution should always exist, but we cannot exclude situation where the solution fails. Please report such cases. Additional information in case of failure can be found in the `opt` element of the output of `recover_table` and `rescale_table`. The solving procedure sometimes issues warnings about `NaN` in `log(x)`. These warnings can be ignored.
+
+There is another set of ratios which can be used to recover the table. They are defined as:
+
+$$r_{ij} = \log\left(\frac{t_{i-1,j}t_{i,j-1}}{t_{i-1,j-1}t_{ij}}\right) = \log(t_{i-1,j})+\log(t_{i,j-1})-\log(t_{i-1,j-1})-\log(t_{ij})$$
+
+Set `ratio = "sequential"` in `constraints` and `recover_table` to use these ratios.
+
 
 
 

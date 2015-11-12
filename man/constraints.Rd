@@ -8,6 +8,9 @@ constraints(a, ratio = c("fixed", "sequential"))
 }
 \arguments{
 \item{a}{the matrix}
+
+\item{ratio}{a string specifying the type of ratios used. The default is \code{"fixed"} for ratios with fixed first row and column.
+It is also possible to use \code{"sequential"} ratios}
 }
 \value{
 a list with the following elements
