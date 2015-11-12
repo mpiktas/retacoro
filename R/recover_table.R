@@ -239,7 +239,7 @@ recover_table <- function(p, col_sums, row_sums, ratio = c("fixed", "sequential"
     ic <- c(sum(row_sums)/(n*m),col_sums[-1]/n)
     initM <- switch(ratio,
                     fixed = invp1(p, ir, ic),
-                    sequential = invp1(p, ir, ic)
+                    sequential = invp(p, ir, ic)
     )
     o <- nleqslv(as.vector(initM), slv, jac = jac_cr,
             cs = col_sums, rs = row_sums[-length(row_sums)], p,
