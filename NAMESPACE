@@ -3,4 +3,5 @@
 S3method(print,recover_table)
 export(constraints)
 export(recover_table)
+export(rescale_table)
 import(nleqslv)

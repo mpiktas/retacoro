@@ -176,6 +176,8 @@ slv <- function(x, cs, rs, p, A, B) {
 #' Calculate the matrix constraints
 #'
 #' @param a the matrix
+#' @param ratio a string specifying the type of ratios used. The default is \code{"fixed"} for ratios with fixed first row and column.
+#' It is also possible to use \code{"sequential"} ratios
 #'
 #' @return a list with the following elements
 #' \item{cs}{the vector of column sums}
@@ -202,9 +204,11 @@ constraints <- function(a, ratio = c("fixed", "sequential")) {
 
 #' Recover table given column and row sums and given the log ratios
 #'
-#' @param initM the initial matrix
+#' @param p the log ratios
 #' @param col_sums the vector of column sums
 #' @param row_sums the vector of row sums
+#' @param ratio the type of ratios used. The default is \code{"fixed"} for ratios with fixed first row and column.
+#' It is also possible to use \code{"sequential"} ratios
 #' @param ... additional arguments to nleqlsv
 #'
 #' @return a list with the following elements
@@ -215,8 +219,8 @@ constraints <- function(a, ratio = c("fixed", "sequential")) {
 #' @examples
 #' set.seed(10)
 #' m <- matrix(runif(9),3)
-#' ma <- m + matrix(runif(9),3)/20
-#' res <- recover_table(ma, colSums(m), rowSums(m))
+#' cr <- constraints(m)
+#' res <- recover_table(cr$p, colSums(m), rowSums(m))
 #' res$table - m
 recover_table <- function(p, col_sums, row_sums, ratio = c("fixed", "sequential"), ...) {
 
@@ -248,7 +252,7 @@ recover_table <- function(p, col_sums, row_sums, ratio = c("fixed", "sequential"
 }
 
 
-#' Rescale table given column and row sums and initial guess
+#' Rescale table given column and row sums and initial table
 #'
 #' @param initM the initial matrix
 #' @param col_sums the vector of column sums

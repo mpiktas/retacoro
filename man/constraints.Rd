@@ -4,7 +4,7 @@
 \alias{constraints}
 \title{Calculate the matrix constraints}
 \usage{
-constraints(a)
+constraints(a, ratio = c("fixed", "sequential"))
 }
 \arguments{
 \item{a}{the matrix}

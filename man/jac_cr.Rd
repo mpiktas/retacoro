@@ -4,7 +4,7 @@
 \alias{jac_cr}
 \title{Jacobian of the system for recovering the table}
 \usage{
-jac_cr(x, A, B)
+jac_cr(x, A, B, ...)
 }
 \arguments{
 \item{x}{the vectorized matrix}
@@ -12,6 +12,8 @@ jac_cr(x, A, B)
 \item{A}{the constraint matrix for sums}
 
 \item{B}{the constraint matrix for log-likelihood ratio}
+
+\item{...}{additional parameters which are ignored.}
 }
 \value{
 a matrix

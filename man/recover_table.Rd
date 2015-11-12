@@ -2,16 +2,19 @@
 % Please edit documentation in R/recover_table.R
 \name{recover_table}
 \alias{recover_table}
-\title{Recover table given column and row sums and initial guess}
+\title{Recover table given column and row sums and given the log ratios}
 \usage{
-recover_table(initM, col_sums, row_sums, ...)
+recover_table(p, col_sums, row_sums, ratio = c("fixed", "sequential"), ...)
 }
 \arguments{
-\item{initM}{the initial matrix}
+\item{p}{the log ratios}
 
 \item{col_sums}{the vector of column sums}
 
 \item{row_sums}{the vector of row sums}
+
+\item{ratio}{the type of ratios used. The default is \code{"fixed"} for ratios with fixed first row and column.
+It is also possible to use \code{"sequential"} ratios}
 
 \item{...}{additional arguments to nleqlsv}
 }
@@ -21,13 +24,13 @@ a list with the following elements
 \item{opt}{a result of \code{nleqslv}}
 }
 \description{
-Recover table given column and row sums and initial guess
+Recover table given column and row sums and given the log ratios
 }
 \examples{
 set.seed(10)
 m <- matrix(runif(9),3)
-ma <- m + matrix(runif(9),3)/20
-res <- recover_table(ma, colSums(m), rowSums(m))
+cr <- constraints(m)
+res <- recover_table(cr$p, colSums(m), rowSums(m))
 res$table - m
 }
 
