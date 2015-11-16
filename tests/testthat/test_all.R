@@ -6,7 +6,7 @@ test_that("The sum constraint matrix works", {
 })
 
 
-test_that("The log-likelihood constraint matrix works", {
+test_that("The log ratio constraint matrix works", {
     n2 <- function(x,y) pnorm(x)*pnorm(y)
     a <- seq(-2,2,by = 0.1)
     m <- outer(a,a,n2)
@@ -15,7 +15,16 @@ test_that("The log-likelihood constraint matrix works", {
     expect_that( length(which(rr > 0)), equals(0))
 })
 
-test_that("The log-likelihood constraint with fixed first row and column  works", {
+test_that("The inverse of fixed constraints works", {
+    set.seed(12)
+    m <- matrix(runif(15),nrow = 5)
+    cr <- constraints(m, ratio = "fixed")
+    mm <- invp1(cr$p, m[, 1], m[1, ])
+    expect_that(sum(abs(mm - m)), is_less_than(1e-6))
+
+})
+
+test_that("The log ratio constraint with fixed first row and column  works", {
     set.seed(13)
     m <- matrix(runif(15),nrow = 5)
     BB <- genB(nrow(m),ncol(m))
