@@ -4,7 +4,7 @@
 \alias{slv}
 \title{The mismatch between the matrix and its constraints}
 \usage{
-slv(x, cs, rs, p, A, B)
+slv(x, cs, rs, p, ...)
 }
 \arguments{
 \item{x}{the vectorized matrix}
@@ -13,11 +13,9 @@ slv(x, cs, rs, p, A, B)
 
 \item{rs}{the vector of row sums}
 
-\item{p}{the vector of log-likelihood ratios}
+\item{p}{the matrix of fixed log ratios}
 
-\item{A}{the constraint matrix for sums}
-
-\item{B}{the constraint matrix for log-likelihood ratios}
+\item{...}{additional parameters which are ignored}
 }
 \value{
 the vector of differences

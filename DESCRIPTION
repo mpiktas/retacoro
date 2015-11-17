@@ -1,13 +1,14 @@
 Package: retacoro
 Type: Package
 Title: Recover Table Given Column And Row Totals
-Version: 0.0.2
+Version: 0.0.3
 Author: Vaidotas Zemlys <zemlys@gmail.com>
 Maintainer: Vaidotas Zemlys <zemlys@gmail.com>
 Description: Given table renormalize it so that it has given column and row
     totals, while preserving certain structure.
 Depends:
-    nleqslv
+    nleqslv,
+    Matrix
 License: GPL-2 | MIT + file LICENCE
 LazyData: TRUE
 RoxygenNote: 5.0.0
@@ -15,5 +16,6 @@ URL: https://github.com/mpiktas/retacoro
 BugReports: https://github.com/mpiktas/retacoro/issues
 Suggests: testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    numDeriv
 VignetteBuilder: knitr

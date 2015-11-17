@@ -39,9 +39,11 @@ test_that("Recovering the matrix given the constraints works", {
     set.seed(100)
     m <- matrix(runif(15), nrow = 5)
     cr <- constraints(m)
-    o <- nleqslv(as.vector(m) + runif(15)/10, slv, jacobian = jac_cr,
-                 cs = cr$cs, rs = cr$rs, p = cr$p, A = cr$A, B = cr$B)
-    expect_that(sum(abs(o$x - as.vector(m))), is_less_than(1e-8))
+    o <- nleqslv(cr$ix + runif(length(cr$ix))/14, slv, jacobian = jac_cr,
+                 cs = cr$cs, rs = cr$rs, p = cr$p, A = cr$A)
+
+    res <- invp1(cr$p, o$x[1:5], c(o$x[1], o$x[6:7]))
+    expect_that(sum(abs(res - m)), is_less_than(1e-6))
 })
 
 

@@ -4,14 +4,12 @@
 \alias{cr}
 \title{Generate the constraints given the vectorized matrix and the constraint matrices}
 \usage{
-cr(x, A, B)
+cr(x, p)
 }
 \arguments{
 \item{x}{the vectorized matrix}
 
-\item{A}{the constraint matrix for sums}
-
-\item{B}{the constraint matrix for log-likelihood ratio}
+\item{p}{the matrix of fixed log ratios#'}
 }
 \value{
 a vector

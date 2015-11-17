@@ -2,12 +2,12 @@
 % Please edit documentation in R/recover_table.R
 \name{invp1}
 \alias{invp1}
-\title{Recover table from a fixed log-likelihood ratios and first column and row.}
+\title{Recover table from a fixed log ratios and first column and row.}
 \usage{
 invp1(p, col1, row1)
 }
 \arguments{
-\item{p}{a matrix of log-likelihood ratios}
+\item{p}{a matrix of log ratios}
 
 \item{col1}{a vector containing the first column}
 
@@ -17,6 +17,6 @@ invp1(p, col1, row1)
 a matrix
 }
 \description{
-Recover table from a fixed log-likelihood ratios and first column and row.
+Recover table from a fixed log ratios and first column and row.
 }
 

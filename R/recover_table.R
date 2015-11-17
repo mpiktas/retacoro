@@ -21,18 +21,8 @@
 #' @param m integer, number of columns
 #'
 #' @return constraint matrix with n+m rows and n*m columns
+#' @import Matrix
 genA <- function(n,m) {
-    cind <- lapply((0:(m - 1))*n, function(shift) shift + 1:n)
-    rind <- lapply(0:(n - 1), function(shift) shift + seq(1,(m - 1)*n + 1,by = n))
-    add_ones <- function(i) {
-        res <- rep(0,n*m)
-        res[i] <- 1
-        res
-    }
-    do.call("rbind",lapply(c(cind,rind), add_ones))
-}
-
-genAs <- function(n,m) {
     cind <- lapply((0:(m - 1))*n, function(shift) shift + 1:n)
     rind <- lapply(0:(n - 1), function(shift) shift + seq(1,(m - 1)*n + 1,by = n))
     rr1 <- rep(1:length(cind), times = sapply(cind,length))
@@ -72,21 +62,6 @@ genB <- function(n,m) {
 #'
 #' @return constraint matrix with (n-1)*(m-1) rows and n*m columns
 genB1 <- function(n,m) {
-    resl <- vector("list",(n - 1)*(m - 1))
-    for (i in 1:(n - 1)) {
-        for (j in 1:(m - 1)) {
-            res <- rep(0,n*m)
-            res[1] <- -1
-            res[i + 1] <- 1
-            res[1 + j*n] <- 1
-            res[i + 1 + j*n] <- -1
-            resl[[i + (j - 1)*(n - 1)]] <- res
-        }
-    }
-    do.call("rbind",resl)
-}
-
-genB1s <- function(n,m) {
     rr <- rep(1:((n - 1)*(m - 1)),each = 4)
     cc <- rep(NA,length(rr))
     x <- rep(c(-1,1,1,-1),(n - 1)*(m - 1))
@@ -120,7 +95,7 @@ cumsum2 <- function(p) {
     res
 }
 
-#' Recover table from a sequential log-likelihood ratios and first column and row.
+#' Recover table from a sequential log ratios and first column and row.
 #'
 #' @param p a matrix of log-likelihood ratios
 #' @param col1 a vector containing the first column
@@ -141,9 +116,9 @@ invp <- function(p, col1, row1) {
 }
 
 
-#' Recover table from a fixed log-likelihood ratios and first column and row.
+#' Recover table from a fixed log ratios and first column and row.
 #'
-#' @param p a matrix of log-likelihood ratios
+#' @param p a matrix of log ratios
 #' @param col1 a vector containing the first column
 #' @param row1 a vector containing the first row
 #'
@@ -166,42 +141,10 @@ invp1 <- function(p, col1, row1) {
 #' Generate the constraints given the vectorized matrix and the constraint matrices
 #'
 #' @param x the vectorized matrix
-#' @param A the constraint matrix for sums
-#' @param B the constraint matrix for log-likelihood ratio
+#' @param p the matrix of fixed log ratios#'
 #'
 #' @return a vector
-cr <- function(x,A,B) {
-    c(as.vector(A %*% x), as.vector(B %*% log(x)))
-}
-
-
-#' Jacobian of the system for recovering the table
-#'
-#' @param x the vectorized matrix
-#' @param A the constraint matrix for sums
-#' @param B the constraint matrix for log-likelihood ratio
-#' @param ... additional parameters which are ignored.
-#'
-#' @return a matrix
-jac_cr <- function(x, A, B, ...) {
-    rbind(A,t(t(B)/x))
-}
-
-#' The mismatch between the matrix and its constraints
-#'
-#' @param x the vectorized matrix
-#' @param cs the vector of column sums
-#' @param rs the vector of row sums
-#' @param p the vector of log-likelihood ratios
-#' @param A the constraint matrix for sums
-#' @param B the constraint matrix for log-likelihood ratios
-#'
-#' @return the vector of differences
-slv <- function(x, cs, rs, p, A, B) {
-    cr(x,A,B) - c(cs,rs,p)
-}
-
-cr1 <- function(x, p) {
+cr <- function(x, p) {
     n <- nrow(p) + 1
     m <- ncol(p) + 1
     cc <- x[1:n]
@@ -210,11 +153,16 @@ cr1 <- function(x, p) {
     c(colSums(M),rowSums(M)[-n])
 }
 
-slv1 <- function(x, cs, rs, p) {
-    cr1(x,p) - c(cs,rs)
-}
 
-jac_cr1 <- function(x, p,  A) {
+#' Jacobian of the system for recovering the table
+#'
+#' @param x the vectorized matrix
+#' @param A the constraint matrix for sums
+#' @param p the matrix of fixed log ratios
+#' @param ... additional parameters which are ignored.
+#'
+#' @return a matrix
+jac_cr <- function(x, p,  A, ...) {
     n <- nrow(p) + 1
     m <- ncol(p) + 1
 
@@ -230,7 +178,7 @@ jac_cr1 <- function(x, p,  A) {
                 res[[i + (j - 1)*n]] <- list(j = n + j - 1, x = 1)
             }
             if (i > 1 & j > 1) {
-                dij <- exp(p[i - 1, j - 1])
+                dij <- exp(-p[i - 1, j - 1])
                 res[[i + (j - 1)*n]] <- list(j = c(1, i, n + j - 1),
                                              x = dij/cc[1] *c(-cc[i] * rr[j]/ cc[1], rr[j], cc[i]))
             }
@@ -240,7 +188,21 @@ jac_cr1 <- function(x, p,  A) {
     jj <- unlist(lapply(res,"[[", "j"))
     xx <- unlist(lapply(res,"[[", "x"))
     ff <- do.call("sparseMatrix",list(i = ii, j = jj, x = xx))
-    A %*% ff
+    #list(ff=ff,j=A %*% ff)
+    as.matrix(A %*% ff)
+}
+
+#' The mismatch between the matrix and its constraints
+#'
+#' @param x the vectorized matrix
+#' @param cs the vector of column sums
+#' @param rs the vector of row sums
+#' @param p the matrix of fixed log ratios
+#' @param ... additional parameters which are ignored
+#'
+#' @return the vector of differences
+slv <- function(x, cs, rs, p, ...) {
+    cr(x,p) - c(cs,rs)
 }
 
 #' Calculate the matrix constraints
@@ -261,15 +223,15 @@ jac_cr1 <- function(x, p,  A) {
 #' constraints(m)
 constraints <- function(a, ratio = c("fixed", "sequential")) {
     ratio <- match.arg(ratio)
-    A <- genAs(nrow(a),ncol(a))
+    A <- genA(nrow(a),ncol(a))
     B <- switch(ratio,
-                fixed = genB1s(nrow(a),ncol(a)),
+                fixed = genB1(nrow(a),ncol(a)),
                 sequential = genB(nrow(a),ncol(a)))
 
     cs <- colSums(a)
     rs <- rowSums(a)
     p <- as.vector(B %*% log(as.vector(a)))
-    list(cs = cs, rs = rs[-nrow(a)], p = matrix(p, nrow = nrow(a) - 1), A = A[-nrow(A), ], B = B, ix = c(a[,1],a[1,-1]), ratio = ratio)
+    list(cs = cs, rs = rs[-nrow(a)], p = matrix(p, nrow = nrow(a) - 1), A = A[-nrow(A), ], ix = c(a[,1],a[1,-1]), ratio = ratio)
 
 }
 
@@ -301,44 +263,16 @@ recover_table <- function(p, col_sums, row_sums, ratio = c("fixed", "sequential"
 
     n <- nrow(p) + 1
     m <- ncol(p) + 1
+
     A <- genA(n, m)
-    B <- switch(ratio,
-                fixed = genB1(n,m),
-                sequential = genB(n,m))
-
     ir <- c(sum(row_sums)/(n*m),row_sums[-1]/m)
     ic <- c(sum(row_sums)/(n*m),col_sums[-1]/n)
-    initM <- switch(ratio,
-                    fixed = invp1(p, ir, ic),
-                    sequential = invp(p, ir, ic)
-    )
-    o <- nleqslv(as.vector(initM), slv, jac = jac_cr,
-            cs = col_sums, rs = row_sums[-length(row_sums)], p,
-            A = A[-nrow(A),], B = B, ...)
-    if (o$termcd > 2) warning("The acceptable solution was not found. Numerical optimisation ended with the following message: ", o$message)
-    ans <- matrix(o$x, nrow = n)
-    res <- list(table = ans, opt = o)
-    class(res) <- "recover_table"
-    res
-}
-
-recover_table1 <- function(p, col_sums, row_sums, ratio = c("fixed", "sequential"), ...) {
-
-    ratio <- match.arg(ratio)
-    if (nrow(p) != length(row_sums) - 1 ) stop("The number of rows in log-likelihood ratio matrix should be one less than the number of row sums totals")
-    if (ncol(p) != length(col_sums) - 1 ) stop("The number of columns in initial matrix log-likelihood ratio matrix should be one less than the number of column sums totals")
-
-    n <- nrow(p) + 1
-    m <- ncol(p) + 1
-
-    ir <- c(sum(row_sums)/(n*m),row_sums[-1]/m)
-    ic <- c(sum(row_sums)/(n*m),col_sums[-1]/n)
-
-    o <- nleqslv(c(ir,ic[-1]), slv1,
-                 cs = col_sums, rs = row_sums[-length(row_sums)], p = p, ...)
+    if (ratio == "sequential") p <- cumsum2(p)
+    o <- nleqslv(c(ir,ic[-1]), slv, jac = jac_cr,
+                 cs = col_sums, rs = row_sums[-length(row_sums)], p = p, A = A[-nrow(A), ],...)
     if (o$termcd > 2) warning("The acceptable solution was not found. Numerical optimisation ended with the following message: ", o$message)
 
-    ans <- invp1(p, o$x[1:n], c(o$x[1],o$x[(n + 1):(n + m - 1)]))
+    ans <- invp1(p, o$x[1:n], c(o$x[1], o$x[(n + 1):(n + m - 1)]))
 
     res <- list(table = ans, opt = o)
     class(res) <- "recover_table"
@@ -370,11 +304,14 @@ rescale_table <- function(initM, col_sums, row_sums, ...) {
 
     cr <- constraints(initM)
 
-    o <- nleqslv(as.vector(initM), slv, jac = jac_cr,
-                 cs = col_sums, rs = row_sums[-length(row_sums)], p = as.vector(cr$p),
-                 A = cr$A, B = cr$B, ...)
+    o <- nleqslv(cr$ix, slv, jac = jac_cr,
+                 cs = col_sums, rs = row_sums[-length(row_sums)], p = cr$p,
+                 A = cr$A, ...)
     if (o$termcd > 2) warning("The acceptable solution was not found. Numerical optimisation ended with the following message: ", o$message)
-    ans <- matrix(o$x, nrow = nrow(initM))
+    n <- nrow(initM)
+    m <- ncol(initM)
+    ans <- invp1(cr$p, o$x[1:n], c(o$x[1], o$x[(n + 1):(n + m - 1)]))
+
     res <- list(table = ans, opt = o)
     class(res) <- "recover_table"
     res

@@ -2,7 +2,7 @@
 % Please edit documentation in R/recover_table.R
 \name{invp}
 \alias{invp}
-\title{Recover table from a sequential log-likelihood ratios and first column and row.}
+\title{Recover table from a sequential log ratios and first column and row.}
 \usage{
 invp(p, col1, row1)
 }
@@ -17,6 +17,6 @@ invp(p, col1, row1)
 a matrix
 }
 \description{
-Recover table from a sequential log-likelihood ratios and first column and row.
+Recover table from a sequential log ratios and first column and row.
 }
 
