@@ -93,7 +93,7 @@ test_that("Trivial recovering works with fixed ratios", {
     mm <- matrix(runif(15), nrow = 5)
     cr <-  constraints(mm, ratio = "fixed")
     res <- recover_table(cr$p, colSums(mm), rowSums(mm), ratio = "fixed")
-    expect_that(sum(abs(res$table - mm)), is_less_than(1e-8))
+    expect_that(sum(abs(res$table - mm)), is_less_than(1e-6))
 })
 
 
@@ -102,6 +102,6 @@ test_that("Trivial recovering works with sequential ratios", {
     m <- matrix(runif(15), nrow = 5)
     cr <- constraints(m, ratio = "sequential")
     res <- recover_table(cr$p, colSums(m), rowSums(m), ratio = "sequential")
-    expect_that(sum(abs(res$table-m)), is_less_than(1e-8))
+    expect_that(sum(abs(res$table-m)), is_less_than(1e-6))
 
 })
