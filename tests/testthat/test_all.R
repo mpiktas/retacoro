@@ -65,7 +65,7 @@ test_that("The jacobian works", {
     m <- matrix(runif(63),nrow = 9)
     cr <- constraints(m)
     jc_t <- jac_cr(cr$ix, p = cr$p, A = cr$A)
-    jc_n <- jacobian(slv, cr$ix, cs = cr$cs, rs =cr$rs, p = cr$p)
+    jc_n <- jacobian(slv, cr$ix, cs = cr$cs, rs = cr$rs, p = cr$p)
     expect_that( sum(abs(jc_t - jc_n)), is_less_than(1e-6))
 })
 
@@ -102,6 +102,5 @@ test_that("Trivial recovering works with sequential ratios", {
     m <- matrix(runif(15), nrow = 5)
     cr <- constraints(m, ratio = "sequential")
     res <- recover_table(cr$p, colSums(m), rowSums(m), ratio = "sequential")
-    expect_that(sum(abs(res$table-m)), is_less_than(1e-6))
-
+    expect_that(sum(abs(res$table - m)), is_less_than(1e-6))
 })

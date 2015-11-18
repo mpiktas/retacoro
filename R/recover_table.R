@@ -127,15 +127,15 @@ invp1 <- function(p, col1, row1) {
 #' @param p the matrix of fixed log ratios#'
 #'
 #' @return a vector
-cr <- function(x, p) {
+cr <- function(x, p, exclude = NULL) {
     n <- nrow(p) + 1
     m <- ncol(p) + 1
     cc <- x[1:n]
     rr <- c(x[1], x[(n + 1):length(x)])
     M <- invp1(p, cc, rr)
+    if (!is.null(exclude)) M[exclude] <- 0
     c(colSums(M),rowSums(M)[-n])
 }
-
 
 #' Jacobian of the system for recovering the table
 #'
@@ -145,7 +145,7 @@ cr <- function(x, p) {
 #' @param ... additional parameters which are ignored.
 #'
 #' @return a matrix
-jac_cr <- function(x, p,  A, ...) {
+jac_cr <- function(x, p,  A, exclude = NULL, ...) {
     n <- nrow(p) + 1
     m <- ncol(p) + 1
 
@@ -172,6 +172,12 @@ jac_cr <- function(x, p,  A, ...) {
     xx <- unlist(lapply(res,"[[", "x"))
     ff <- do.call("sparseMatrix",list(i = ii, j = jj, x = xx))
     #list(ff=ff,j=A %*% ff)
+
+    if (!is.null(exclude)) {
+        kk <- exclude[,1] + (exclude[,2] - 1)*n
+        ff <- ff[-kk,]
+        A <- A[, -kk]
+    }
     as.matrix(A %*% ff)
 }
 
@@ -184,8 +190,8 @@ jac_cr <- function(x, p,  A, ...) {
 #' @param ... additional parameters which are ignored
 #'
 #' @return the vector of differences
-slv <- function(x, cs, rs, p, ...) {
-    cr(x,p) - c(cs,rs)
+slv <- function(x, cs, rs, p, exclude = NULL, ...) {
+    cr(x, p, exclude = exclude) - c(cs,rs)
 }
 
 #' Calculate the matrix constraints
@@ -218,15 +224,19 @@ constraints <- function(a, ratio = c("fixed", "sequential")) {
 
 }
 
-get_r <- function(cc, cs, rs, p) {
-    D <- rbind(rep(1,ncol(p)),1/exp(p))
+get_r <- function(cc, cs, rs, p, exclude = NULL) {
+    d <- exp(-p)
+    if (!is.null(exclude)) d[exclude] <- 0
+    D <- rbind(rep(1,ncol(p)),d)
     as.vector(cs[-1]*cc[1]/(t(cc) %*% D))
 }
 
-get_c <- function(rr, cs, rs, p) {
+get_c <- function(rr, cs, rs, p, exclude = NULL) {
+    d <- exp(-p)
+    if (!is.null(exclude)) d[exclude] <- 0
     rs <- c(rs, sum(cs) - sum(rs))
     c1 <- rs[1] - sum(rr)
-    c2 <- c1*rs[-1]/(c1 + (1/exp(p)) %*% rr)
+    c2 <- c1*rs[-1]/(c1 + d %*% rr)
     c(c1,c2)
 }
 #' Recover table given column and row sums and given the log ratios
@@ -249,7 +259,7 @@ get_c <- function(rr, cs, rs, p) {
 #' cr <- constraints(m)
 #' res <- recover_table(cr$p, colSums(m), rowSums(m))
 #' res$table - m
-recover_table <- function(p, col_sums, row_sums, ratio = c("fixed", "sequential"), ...) {
+recover_table <- function(p, col_sums, row_sums, exclude = NULL, ratio = c("fixed", "sequential"), ...) {
 
     ratio <- match.arg(ratio)
     if (nrow(p) != length(row_sums) - 1 ) stop("The number of rows in log-likelihood ratio matrix should be one less than the number of row sums totals")
@@ -261,19 +271,19 @@ recover_table <- function(p, col_sums, row_sums, ratio = c("fixed", "sequential"
     A <- genA(n, m)
     col1 <- c(sum(row_sums)/(n*m),row_sums[-1]/m)
     col1 <- col1*col_sums[1]/sum(col1)
-    row1 <- get_r(col1, col_sums, row_sums[-n], p)
+    row1 <- get_r(col1, col_sums, row_sums[-n], p, exclude)
     row1 <- row1*row_sums[1]/(col1[1] + sum(row1))
-    col1 <- get_c(row1, col_sums, row_sums[-n], p)
+    col1 <- get_c(row1, col_sums, row_sums[-n], p, exclude)
     col1 <- col1*col_sums[1]/sum(col1)
 
     ic <- c(sum(row_sums)/(n*m),col_sums[-1]/n)
     if (ratio == "sequential") p <- cumsum2(p)
     o <- nleqslv(c(col1, row1), slv, jac = jac_cr,
-                 cs = col_sums, rs = row_sums[-length(row_sums)], p = p, A = A[-nrow(A), ],...)
+                 cs = col_sums, rs = row_sums[-length(row_sums)], p = p, A = A[-nrow(A), ], exclude = exclude, ...)
     if (o$termcd > 2) warning("The acceptable solution was not found. Numerical optimisation ended with the following message: ", o$message)
 
     ans <- invp1(p, o$x[1:n], c(o$x[1], o$x[(n + 1):(n + m - 1)]))
-
+    if (!is.null(exclude)) ans[exclude] <- 0
     res <- list(table = ans, opt = o)
     class(res) <- "recover_table"
     res
@@ -297,20 +307,30 @@ recover_table <- function(p, col_sums, row_sums, ratio = c("fixed", "sequential"
 #' ma <- m + matrix(runif(9),3)/20
 #' res <- rescale_table(ma, colSums(m), rowSums(m))
 #' res$table - m
-rescale_table <- function(initM, col_sums, row_sums, ...) {
+rescale_table <- function(initM, col_sums, row_sums, exclude = NULL, ...) {
 
     if (nrow(initM) != length(row_sums)) stop("The number of rows in initial matrix is not the same as in row totals")
     if (ncol(initM) != length(col_sums)) stop("The number of columns in initial matrix is not the same as in column totals")
 
     cr <- constraints(initM)
-
+    nai <- which(is.na(cr$p))
+    if (length(nai) > 0) {
+        ii <- nai %% nrow(p) + 1
+        jj <- nai %/% nrow(p) + 2
+        nae <- cbind(ii,jj)
+        nae <- nae[order(nae[,1], nae[,2])]
+        if (is.null(exclude)) stop("Please set exclusion for zero elements of the matrix")
+        exclude <- exclude[order(exclude[,1], exclude[,2]), ]
+        if(!identical(as.integer(exclude), as.integer(nae))) stop("Excluding restricting does not coincide with zero elements in the matrix")
+    }
     o <- nleqslv(cr$ix, slv, jac = jac_cr,
                  cs = col_sums, rs = row_sums[-length(row_sums)], p = cr$p,
-                 A = cr$A, ...)
+                 A = cr$A, exclude = exclude, ...)
     if (o$termcd > 2) warning("The acceptable solution was not found. Numerical optimisation ended with the following message: ", o$message)
     n <- nrow(initM)
     m <- ncol(initM)
     ans <- invp1(cr$p, o$x[1:n], c(o$x[1], o$x[(n + 1):(n + m - 1)]))
+    if (!is.null(exclude)) ans[exclude] <- 0
 
     res <- list(table = ans, opt = o)
     class(res) <- "recover_table"

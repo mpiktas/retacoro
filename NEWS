@@ -1,6 +1,10 @@
+retacoro 0.0.4
+==============
+Add capability to hold certain elements of the table fixed to zero.
+
 retacoro 0.0.3
 ==============
-Large matrices (up to 1000 elements) now can be used.
+Large matrices (up to 1000*1000 elements) now can be used.
 
 * Rewrite the package with to use sparse matrices.
 
