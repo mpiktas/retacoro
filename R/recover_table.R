@@ -1,20 +1,3 @@
-# Hello, world!
-#
-# This is an example function named 'hello'
-# which prints 'Hello, world!'.
-#
-# You can learn more about package authoring with RStudio at:
-#
-#   http://r-pkgs.had.co.nz/
-#
-# Some useful keyboard shortcuts for package authoring:
-#
-#   Build and Reload Package:  'Cmd + Shift + B'
-#   Check Package:             'Cmd + Shift + E'
-#   Test Package:              'Cmd + Shift + T'
-
-
-
 #' Generate a constraint matrix for column and row sums
 #'
 #' @param n integer, number of rows
@@ -235,6 +218,17 @@ constraints <- function(a, ratio = c("fixed", "sequential")) {
 
 }
 
+get_r <- function(cc, cs, rs, p) {
+    D <- rbind(rep(1,ncol(p)),1/exp(p))
+    as.vector(cs[-1]*cc[1]/(t(cc) %*% D))
+}
+
+get_c <- function(rr, cs, rs, p) {
+    rs <- c(rs, sum(cs) - sum(rs))
+    c1 <- rs[1] - sum(rr)
+    c2 <- c1*rs[-1]/(c1 + (1/exp(p)) %*% rr)
+    c(c1,c2)
+}
 #' Recover table given column and row sums and given the log ratios
 #'
 #' @param p the log ratios
@@ -265,10 +259,16 @@ recover_table <- function(p, col_sums, row_sums, ratio = c("fixed", "sequential"
     m <- ncol(p) + 1
 
     A <- genA(n, m)
-    ir <- c(sum(row_sums)/(n*m),row_sums[-1]/m)
+    col1 <- c(sum(row_sums)/(n*m),row_sums[-1]/m)
+    col1 <- col1*col_sums[1]/sum(col1)
+    row1 <- get_r(col1, col_sums, row_sums[-n], p)
+    row1 <- row1*row_sums[1]/(col1[1] + sum(row1))
+    col1 <- get_c(row1, col_sums, row_sums[-n], p)
+    col1 <- col1*col_sums[1]/sum(col1)
+
     ic <- c(sum(row_sums)/(n*m),col_sums[-1]/n)
     if (ratio == "sequential") p <- cumsum2(p)
-    o <- nleqslv(c(ir,ic[-1]), slv, jac = jac_cr,
+    o <- nleqslv(c(col1, row1), slv, jac = jac_cr,
                  cs = col_sums, rs = row_sums[-length(row_sums)], p = p, A = A[-nrow(A), ],...)
     if (o$termcd > 2) warning("The acceptable solution was not found. Numerical optimisation ended with the following message: ", o$message)
 

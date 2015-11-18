@@ -1,0 +1,21 @@
+retacoro 0.0.3
+==============
+Large matrices (up to 1000 elements) now can be used.
+
+* Rewrite the package with to use sparse matrices.
+
+* Solve for the first row and column, as all the other table elements can be calculated from them given the log ratios
+
+
+retacoro 0.0.2
+==============
+
+* Add proper documentation and vignette.
+
+* Introduce function recover_table, for recovering the table from the log ratios.
+
+
+retacoro 0.0.1
+==============
+
+Initial version. Rescaling of given matrix.

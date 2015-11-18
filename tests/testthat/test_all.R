@@ -24,6 +24,32 @@ test_that("The inverse of fixed constraints works", {
 
 })
 
+test_that("The inverse of sequential constraints works", {
+    set.seed(112)
+    m <- matrix(runif(15),nrow = 5)
+    cr <- constraints(m, ratio = "sequential")
+    mm <- invp(cr$p, m[, 1], m[1, ])
+    expect_that(sum(abs(mm - m)), is_less_than(1e-6))
+
+})
+
+test_that("Getting rows from columns and log ratio works", {
+    set.seed(113)
+    m <- matrix(runif(28),nrow = 7)
+    cr <- constraints(m)
+    row1 <- get_r(m[,1], cr$cs, cr$rs, cr$p)
+    expect_that(sum(abs(row1 - m[1,-1])), is_less_than(1e-6))
+
+})
+
+test_that("Getting columns from rows and log ratio works", {
+    set.seed(114)
+    m <- matrix(runif(63),nrow = 9)
+    cr <- constraints(m)
+    col1 <- get_c(m[1,-1], cr$cs, cr$rs, cr$p)
+    expect_that(sum(abs(col1 - m[,1])), is_less_than(1e-6))
+})
+
 test_that("The log ratio constraint with fixed first row and column  works", {
     set.seed(13)
     m <- matrix(runif(15),nrow = 5)
@@ -34,6 +60,14 @@ test_that("The log ratio constraint with fixed first row and column  works", {
     expect_that( sum(abs(rr1 - cumsum2(rr))), is_less_than(1e-6))
 })
 
+test_that("The jacobian works", {
+    set.seed(115)
+    m <- matrix(runif(63),nrow = 9)
+    cr <- constraints(m)
+    jc_t <- jac_cr(cr$ix, p = cr$p, A = cr$A)
+    jc_n <- jacobian(slv, cr$ix, cs = cr$cs, rs =cr$rs, p = cr$p)
+    expect_that( sum(abs(jc_t - jc_n)), is_less_than(1e-6))
+})
 
 test_that("Recovering the matrix given the constraints works", {
     set.seed(100)
