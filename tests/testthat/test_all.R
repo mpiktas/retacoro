@@ -1,3 +1,4 @@
+context("Test basics")
 test_that("The sum constraint matrix works", {
     set.seed(100)
     r <- rnorm(100)

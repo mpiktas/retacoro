@@ -4,12 +4,14 @@
 \alias{cr}
 \title{Generate the constraints given the vectorized matrix and the constraint matrices}
 \usage{
-cr(x, p)
+cr(x, p, exclude = NULL)
 }
 \arguments{
 \item{x}{the vectorized matrix}
 
-\item{p}{the matrix of fixed log ratios#'}
+\item{p}{the matrix of fixed log ratios}
+
+\item{exclude}{the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.}
 }
 \value{
 a vector

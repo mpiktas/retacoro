@@ -4,7 +4,8 @@
 \alias{recover_table}
 \title{Recover table given column and row sums and given the log ratios}
 \usage{
-recover_table(p, col_sums, row_sums, ratio = c("fixed", "sequential"), ...)
+recover_table(p, col_sums, row_sums, exclude = NULL, ratio = c("fixed",
+  "sequential"), ...)
 }
 \arguments{
 \item{p}{the log ratios}
@@ -12,6 +13,8 @@ recover_table(p, col_sums, row_sums, ratio = c("fixed", "sequential"), ...)
 \item{col_sums}{the vector of column sums}
 
 \item{row_sums}{the vector of row sums}
+
+\item{exclude}{the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.}
 
 \item{ratio}{the type of ratios used. The default is \code{"fixed"} for ratios with fixed first row and column.
 It is also possible to use \code{"sequential"} ratios}

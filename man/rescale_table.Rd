@@ -4,7 +4,7 @@
 \alias{rescale_table}
 \title{Rescale table given column and row sums and initial table}
 \usage{
-rescale_table(initM, col_sums, row_sums, ...)
+rescale_table(initM, col_sums, row_sums, exclude = NULL, ...)
 }
 \arguments{
 \item{initM}{the initial matrix}
@@ -12,6 +12,8 @@ rescale_table(initM, col_sums, row_sums, ...)
 \item{col_sums}{the vector of column sums}
 
 \item{row_sums}{the vector of row sums}
+
+\item{exclude}{the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.}
 
 \item{...}{additional arguments to nleqlsv}
 }

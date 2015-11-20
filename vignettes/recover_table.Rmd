@@ -69,6 +69,31 @@ Let us check whether the sum totals are the same:
     colSums(mas$table) - colSums(m)
 ```
 
+##Example with zero elements
+
+It is possible to exclude certain matrix elements from consideration  by setting them to zero. Suppose we have the following matrix:
+```{r}
+    set.seed(14)
+    m <- matrix(runif(12),nrow = 3)
+    m
+```
+Say we want to exclude the third column and second row element from consideration:
+
+```{r}
+    m[2,3] <- 0
+    m
+```
+
+When rescaling and recovering such matrix we need to pass the indices of excluded elements via argument `exclude`:
+
+```{r}
+    m[2,3] <- 0
+    cr <- constraints(m)
+    mm <- recover_table(cr$p, colSums(m), rowSums(m), exclude = cbind(2,3))
+    mm$table
+```
+
+
 ##Additional notes
 
 The current code is still in experimental phase, so suggestions are welcome. It works quite well on simple examples. Recovering $300\times 300$ matrix takes about 5 seconds on 6 year old laptop. The upper limit of matrix size is limited by `nleqslv` solver capabilities. 

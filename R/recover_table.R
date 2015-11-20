@@ -124,7 +124,8 @@ invp1 <- function(p, col1, row1) {
 #' Generate the constraints given the vectorized matrix and the constraint matrices
 #'
 #' @param x the vectorized matrix
-#' @param p the matrix of fixed log ratios#'
+#' @param p the matrix of fixed log ratios
+#' @param exclude the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.
 #'
 #' @return a vector
 cr <- function(x, p, exclude = NULL) {
@@ -142,6 +143,7 @@ cr <- function(x, p, exclude = NULL) {
 #' @param x the vectorized matrix
 #' @param A the constraint matrix for sums
 #' @param p the matrix of fixed log ratios
+#' @param exclude the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.
 #' @param ... additional parameters which are ignored.
 #'
 #' @return a matrix
@@ -187,6 +189,7 @@ jac_cr <- function(x, p,  A, exclude = NULL, ...) {
 #' @param cs the vector of column sums
 #' @param rs the vector of row sums
 #' @param p the matrix of fixed log ratios
+#' @param exclude the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.
 #' @param ... additional parameters which are ignored
 #'
 #' @return the vector of differences
@@ -239,6 +242,15 @@ get_c <- function(rr, cs, rs, p, exclude = NULL) {
     c2 <- c1*rs[-1]/(c1 + d %*% rr)
     c(c1,c2)
 }
+
+get_ij <- function(kk, n, m) {
+    i <- kk %% n
+    j <- kk %/% n + 1
+    j[i == 0] <- j[i == 0] - 1
+    i[i == 0] <- n
+    cbind(i, j)
+}
+
 #' Recover table given column and row sums and given the log ratios
 #'
 #' @param p the log ratios
@@ -246,6 +258,7 @@ get_c <- function(rr, cs, rs, p, exclude = NULL) {
 #' @param row_sums the vector of row sums
 #' @param ratio the type of ratios used. The default is \code{"fixed"} for ratios with fixed first row and column.
 #' It is also possible to use \code{"sequential"} ratios
+#' @param exclude the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.
 #' @param ... additional arguments to nleqlsv
 #'
 #' @return a list with the following elements
@@ -264,6 +277,8 @@ recover_table <- function(p, col_sums, row_sums, exclude = NULL, ratio = c("fixe
     ratio <- match.arg(ratio)
     if (nrow(p) != length(row_sums) - 1 ) stop("The number of rows in log-likelihood ratio matrix should be one less than the number of row sums totals")
     if (ncol(p) != length(col_sums) - 1 ) stop("The number of columns in initial matrix log-likelihood ratio matrix should be one less than the number of column sums totals")
+    if(ratio == "sequential" & !is.null(exclude)) stop("Table with fixed elements can only be recovered only fixed ratios")
+
 
     n <- nrow(p) + 1
     m <- ncol(p) + 1
@@ -271,9 +286,9 @@ recover_table <- function(p, col_sums, row_sums, exclude = NULL, ratio = c("fixe
     A <- genA(n, m)
     col1 <- c(sum(row_sums)/(n*m),row_sums[-1]/m)
     col1 <- col1*col_sums[1]/sum(col1)
-    row1 <- get_r(col1, col_sums, row_sums[-n], p, exclude)
+    row1 <- get_r(col1, col_sums, row_sums[-n], p, exclude - 1)
     row1 <- row1*row_sums[1]/(col1[1] + sum(row1))
-    col1 <- get_c(row1, col_sums, row_sums[-n], p, exclude)
+    col1 <- get_c(row1, col_sums, row_sums[-n], p, exclude - 1)
     col1 <- col1*col_sums[1]/sum(col1)
 
     ic <- c(sum(row_sums)/(n*m),col_sums[-1]/n)
@@ -294,6 +309,7 @@ recover_table <- function(p, col_sums, row_sums, exclude = NULL, ratio = c("fixe
 #' @param initM the initial matrix
 #' @param col_sums the vector of column sums
 #' @param row_sums the vector of row sums
+#' @param exclude the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.
 #' @param ... additional arguments to nleqlsv
 #'
 #' @return a list with the following elements
@@ -313,15 +329,13 @@ rescale_table <- function(initM, col_sums, row_sums, exclude = NULL, ...) {
     if (ncol(initM) != length(col_sums)) stop("The number of columns in initial matrix is not the same as in column totals")
 
     cr <- constraints(initM)
-    nai <- which(is.na(cr$p))
+    nai <- which(is.na(cr$p) | is.infinite(cr$p))
     if (length(nai) > 0) {
-        ii <- nai %% nrow(p) + 1
-        jj <- nai %/% nrow(p) + 2
-        nae <- cbind(ii,jj)
-        nae <- nae[order(nae[,1], nae[,2])]
+        nae <- get_ij(nai, nrow(cr$p), ncol(cr$p)) + 1
+        nae <- nae[order(nae[,1], nae[,2]), ]
         if (is.null(exclude)) stop("Please set exclusion for zero elements of the matrix")
         exclude <- exclude[order(exclude[,1], exclude[,2]), ]
-        if(!identical(as.integer(exclude), as.integer(nae))) stop("Excluding restricting does not coincide with zero elements in the matrix")
+        if (!identical(as.integer(exclude), as.integer(nae))) stop("Excluding restricting does not coincide with zero elements in the matrix")
     }
     o <- nleqslv(cr$ix, slv, jac = jac_cr,
                  cs = col_sums, rs = row_sums[-length(row_sums)], p = cr$p,

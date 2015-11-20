@@ -4,7 +4,7 @@
 \alias{jac_cr}
 \title{Jacobian of the system for recovering the table}
 \usage{
-jac_cr(x, p, A, ...)
+jac_cr(x, p, A, exclude = NULL, ...)
 }
 \arguments{
 \item{x}{the vectorized matrix}
@@ -12,6 +12,8 @@ jac_cr(x, p, A, ...)
 \item{p}{the matrix of fixed log ratios}
 
 \item{A}{the constraint matrix for sums}
+
+\item{exclude}{the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.}
 
 \item{...}{additional parameters which are ignored.}
 }

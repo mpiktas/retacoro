@@ -4,7 +4,7 @@
 \alias{slv}
 \title{The mismatch between the matrix and its constraints}
 \usage{
-slv(x, cs, rs, p, ...)
+slv(x, cs, rs, p, exclude = NULL, ...)
 }
 \arguments{
 \item{x}{the vectorized matrix}
@@ -14,6 +14,8 @@ slv(x, cs, rs, p, ...)
 \item{rs}{the vector of row sums}
 
 \item{p}{the matrix of fixed log ratios}
+
+\item{exclude}{the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.}
 
 \item{...}{additional parameters which are ignored}
 }
