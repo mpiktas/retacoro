@@ -1,7 +1,7 @@
 Package: retacoro
 Type: Package
 Title: Recover Table Given Column And Row Totals
-Version: 0.0.4
+Version: 0.0.5
 Author: Vaidotas Zemlys <zemlys@gmail.com>
 Maintainer: Vaidotas Zemlys <zemlys@gmail.com>
 Description: Given table renormalize it so that it has given column and row

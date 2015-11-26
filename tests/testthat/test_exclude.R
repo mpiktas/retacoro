@@ -46,7 +46,7 @@ test_that("Trivial rescaling with exclusions works", {
     m <- matrix(runif(24), nrow = 4)
     exc <- sample_ij(8, 4, 6)
     m[exc] <- 0
-    res <- rescale_table(m, colSums(m), rowSums(m), exclude = exc)
+    res <- rescale_table(m, colSums(m), rowSums(m))
     expect_that(sum(abs(res$table - m)), is_less_than(1e-8))
 })
 

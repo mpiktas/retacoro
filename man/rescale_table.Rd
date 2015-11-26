@@ -4,7 +4,7 @@
 \alias{rescale_table}
 \title{Rescale table given column and row sums and initial table}
 \usage{
-rescale_table(initM, col_sums, row_sums, exclude = NULL, ...)
+rescale_table(initM, col_sums, row_sums, ...)
 }
 \arguments{
 \item{initM}{the initial matrix}
@@ -12,8 +12,6 @@ rescale_table(initM, col_sums, row_sums, exclude = NULL, ...)
 \item{col_sums}{the vector of column sums}
 
 \item{row_sums}{the vector of row sums}
-
-\item{exclude}{the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.}
 
 \item{...}{additional arguments to nleqlsv}
 }
@@ -23,7 +21,8 @@ a list with the following elements
 \item{opt}{a result of \code{nleqslv}}
 }
 \description{
-Rescale table given column and row sums and initial table
+Rescales table so that the result has the supplied column and row sums. The matrix must
+have positive elements in first row and column and nonnegative elements elsewhere.
 }
 \examples{
 set.seed(10)
@@ -31,5 +30,8 @@ m <- matrix(runif(9),3)
 ma <- m + matrix(runif(9),3)/20
 res <- rescale_table(ma, colSums(m), rowSums(m))
 res$table - m
+ma[3,3] <- 0
+res <- rescale_table(ma, colSums(m), rowSums(m))
+res$table
 }
 

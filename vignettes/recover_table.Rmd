@@ -71,7 +71,7 @@ Let us check whether the sum totals are the same:
 
 ##Example with zero elements
 
-It is possible to exclude certain matrix elements from consideration  by setting them to zero. Suppose we have the following matrix:
+It is possible to exclude certain matrix elements from consideration  by setting them to zero. Note that first row and column elements **cannot be** zero. Suppose we have the following matrix:
 ```{r}
     set.seed(14)
     m <- matrix(runif(12),nrow = 3)

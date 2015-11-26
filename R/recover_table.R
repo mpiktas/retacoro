@@ -306,10 +306,11 @@ recover_table <- function(p, col_sums, row_sums, exclude = NULL, ratio = c("fixe
 
 #' Rescale table given column and row sums and initial table
 #'
+#' Rescales table so that the result has the supplied column and row sums. The matrix must
+#' have positive elements in first row and column and nonnegative elements elsewhere.
 #' @param initM the initial matrix
 #' @param col_sums the vector of column sums
 #' @param row_sums the vector of row sums
-#' @param exclude the matrix containing the indices of elements that should be excluded. Default is \code{NULL}, for no exclusions.
 #' @param ... additional arguments to nleqlsv
 #'
 #' @return a list with the following elements
@@ -323,7 +324,10 @@ recover_table <- function(p, col_sums, row_sums, exclude = NULL, ratio = c("fixe
 #' ma <- m + matrix(runif(9),3)/20
 #' res <- rescale_table(ma, colSums(m), rowSums(m))
 #' res$table - m
-rescale_table <- function(initM, col_sums, row_sums, exclude = NULL, ...) {
+#' ma[3,3] <- 0
+#' res <- rescale_table(ma, colSums(m), rowSums(m))
+#' res$table
+rescale_table <- function(initM, col_sums, row_sums, ...) {
 
     if (nrow(initM) != length(row_sums)) stop("The number of rows in initial matrix is not the same as in row totals")
     if (ncol(initM) != length(col_sums)) stop("The number of columns in initial matrix is not the same as in column totals")
@@ -331,12 +335,12 @@ rescale_table <- function(initM, col_sums, row_sums, exclude = NULL, ...) {
     cr <- constraints(initM)
     nai <- which(is.na(cr$p) | is.infinite(cr$p))
     if (length(nai) > 0) {
-        nae <- get_ij(nai, nrow(cr$p), ncol(cr$p)) + 1
-        nae <- nae[order(nae[,1], nae[,2]), ]
-        if (is.null(exclude)) stop("Please set exclusion for zero elements of the matrix")
-        exclude <- exclude[order(exclude[,1], exclude[,2]), ]
-        if (!identical(as.integer(exclude), as.integer(nae))) stop("Excluding restricting does not coincide with zero elements in the matrix")
-    }
+        exclude <- get_ij(nai, nrow(cr$p), ncol(cr$p)) + 1
+        #nae <- nae[order(nae[,1], nae[,2]), ]
+        #if (is.null(exclude)) stop("Please set exclusion for zero elements of the matrix")
+        #exclude <- exclude[order(exclude[,1], exclude[,2]), ,drop = FALSE ]
+        #if (!identical(as.integer(exclude), as.integer(nae))) stop("Excluding restricting does not coincide with zero elements in the matrix")
+    } else exclude <- NULL
     o <- nleqslv(cr$ix, slv, jac = jac_cr,
                  cs = col_sums, rs = row_sums[-length(row_sums)], p = cr$p,
                  A = cr$A, exclude = exclude, ...)
